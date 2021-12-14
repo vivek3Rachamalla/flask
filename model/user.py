@@ -1,4 +1,3 @@
-import sqlite3
 from db import db
 
 
@@ -21,3 +20,7 @@ class UserModule(db.Model):
     @classmethod
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+    def insert_into(self):
+        db.session.add(self)
+        db.session.commit()

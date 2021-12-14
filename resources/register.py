@@ -1,24 +1,30 @@
 import sqlite3
 
 from flask import Flask, request
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
+from model.user import UserModule
 
 
 class Register(Resource):
-    def post(self):
-        data = request.get_json()
-        connection = sqlite3.Connection('data.db')
-        cursor = connection.cursor()
+    parser = reqparse.RequestParser()
+    parser.add_argument('username',
+                        type=str,
+                        required=True,
+                        help="username field cant be empty"
+                        )
+    parser.add_argument('password',
+                        type=str,
+                        required=True,
+                        help="password field cant be empty"
+                        )
 
-        all_users = "SELECT * FROM users WHERE username = ?"
-        row = cursor.execute(all_users, (data['username'],))
-        if row:
+    def post(self):
+        data = Register.parser.parse_args()
+        user = UserModule.find_by_user(data['username'])
+        if user:
             return {'message': "username with '{}' already exists".format(data['username'])}
 
-        user_insert = "INSERT INTO users VALUES(NULL, ?, ?)"
-        cursor.execute(user_insert, (data['username'], data['password']))
-
-        connection.commit()
-        connection.close()
+        user = UserModule(None, **data)
+        user.insert_into()
 
         return {'message': 'you have been registered'}, 201
